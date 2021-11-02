@@ -1,0 +1,6 @@
+redis
+django
+Celery
+djangorestframework
+psycopg2
+requests

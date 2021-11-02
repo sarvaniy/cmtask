@@ -1,0 +1,48 @@
+version: "3"
+services:
+  db:
+    image: postgres
+    env_file:
+      - ./.env.conf
+    volumes:
+      - pgdata:/var/lib/posgresql/data
+  app:
+    build:
+      context: .
+    ports:
+      - "8002:8002"
+    volumes:
+      - ./app:/app
+    command: python manage.py runserver 0.0.0.0:8002
+    env_file:
+      - ./.env.conf
+    depends_on:
+      - db
+  redis:
+    image: redis:alpine
+  celery:
+    restart: always
+    build:
+      context: .
+    command: celery -A app worker -l info
+    volumes:
+      - ./app:/app
+    env_file:
+      - ./.env.conf
+    depends_on:
+      - db
+      - redis
+      - app
+  celery-beat:
+    build: .
+    command: celery -A app beat -l info
+    volumes:
+      - ./app/:/app/
+    env_file:
+      - ./.env.conf
+    depends_on:
+      - db
+      - redis
+      - app
+volumes:
+  pgdata:
